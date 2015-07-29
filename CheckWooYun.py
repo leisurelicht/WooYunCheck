@@ -190,7 +190,7 @@ def sendConnectreport(mailpassword):
 
 if __name__ == '__main__':
     count = 0
-    one = time.time()
+    one = time.time() #开始时间
     mailpassword = sys.argv[1]
     #mailpassword = ""
     Guoziwei = WooYun('Guoziwei.txt',wooyun_url,'国资委',mailpassword)
@@ -198,9 +198,10 @@ if __name__ == '__main__':
     jijin = WooYun('jijin.txt',wooyun_url,'基金',mailpassword)
     while True:
         print "system is running in [",count,"],now is",time.ctime() 
-        two = time.time()
+        two = time.time() #当前时间
         if ( two - one ) > 43200:
             sendConnectreport(mailpassword)
+            one = two
             print "Scheduled connections was sent"
         Guoziwei.dataRequest()
         Baojianhui.dataRequest()
