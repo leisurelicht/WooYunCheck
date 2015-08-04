@@ -144,7 +144,7 @@ class WooYun(object):
             text = "Error in function : \" %s \" ,\nError name is : \" %s \" ,\nError type is : \" %s \" ,\nError Message is : \" %s \" ,\nError doc is : \" %s \" \n" % (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
             print text
             #self.mailInit('Program exception',text,'exceptionInfo')
-        finally:
+        else:
             smtp.quit()
 
     def sendException(self,errorinfo,param):
@@ -162,7 +162,7 @@ class WooYun(object):
             text = "Error in function : \" %s \" ,\nError name is : \" %s \" ,\nError type is : \" %s \" ,\nError Message is : \" %s \" ,\nError doc is : \" %s \" \n" % (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
             print text
             #self.mailInit('Program exception',text,'exceptionInfo')
-        finally:
+        else:
             smtp.quit()
         
 def sendConnectreport(mailpassword):
@@ -185,7 +185,7 @@ def sendConnectreport(mailpassword):
         text = "Error in function : \" %s \" ,\nError name is : \" %s \" ,\nError type is : \" %s \" ,\nError Message is : \" %s \" ,\nError doc is : \" %s \" \n" % (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
         print text
         #self.mailInit('Program exception',text,'exceptionInfo')
-    finally:
+    else:
         smtp.quit()
 
 if __name__ == '__main__':
