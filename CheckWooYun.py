@@ -228,11 +228,11 @@ if __name__ == '__main__':
     one = time.time() #开始时间
     mailpassword = sys.argv[1]
     #mailpassword = ""
-    Guoziwei = WooYun('国资委',mailpassword,'Guoziwei.txt',wooyun_url)
-    Baojianhui = WooYun('保监会',mailpassword,'Baojianhui.txt', wooyun_url)
-    jijin = WooYun('基金',mailpassword,'jijin.txt',wooyun_url)
-    yinhang = WooYun('银行',mailpassword,'yinhang.txt',wooyun_url)
-    timereport = WooYun('运行报告',mailpassword)
+    Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
+    Baojianhui = WooYun('WooYun保监会',mailpassword,'Baojianhui.txt', wooyun_url)
+    jijin = WooYun('WooYun基金',mailpassword,'jijin.txt',wooyun_url)
+    yinhang = WooYun('WooYun银行',mailpassword,'yinhang.txt',wooyun_url)
+    timereport = WooYun('WooYun运行报告',mailpassword)
     timereport.mailInit('running report from WooYun','program start running',"timereport")
 
     while True:
