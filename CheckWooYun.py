@@ -49,8 +49,8 @@ class WooYun(object):
         '''
         print self.name,"is start dataRequest in",self.count
         try:
-            text = requests.get(self.check_url).content
-            #raise Exception("connect error")
+            #text = requests.get(self.check_url).content
+            raise Exception("connect error")
         except (requests.exceptions.ConnectionError,Exception) as e :
                 #print e
                 text = "Error in function : \" %s \" ,\n \
@@ -129,7 +129,7 @@ class WooYun(object):
         else:
             print "Same thing was sent,did not send same mail to everyone"
 
-    def mailInit(self,title,message,type):
+    def mailInit(self,title,message,messagetype):
         print self.name,"is start mailInit in",self.count
 
         sender = '3118706739@qq.com'  #发件人
@@ -146,17 +146,12 @@ class WooYun(object):
         'username':username,'password':password,\
         'receiver_admin':receiver_admin}
 
-        if (type == "securityInfo"):
-            self.sendSecurity(message,param)
-        elif (type == "timereport"):
-            self.sendConnectreport(message,param)
-        else:
-            self.sendException(message,param)
+        self.sendEmail(message,param,messagetype)
 
-    def sendSecurity(self,url,param):
+    def sendEmail(self,message,param,messagetype):
         print self.name,"is start sendSecurity in",self.count
 
-        msg = MIMEText(url,'text')#中文参数‘utf-8’，单字节字符不需要
+        msg = MIMEText(message,'text')#中文参数‘utf-8’，单字节字符不需要
         #msg = MIMEText('hello wold','text')
         msg['Subject'] = Header(param['subject'])
 
@@ -164,53 +159,11 @@ class WooYun(object):
             smtp = smtplib.SMTP()
             smtp.connect(param['smtpserver'])
             smtp.login(param['username'],param['password'])
-            smtp.sendmail(param['sender'],param['receiver'],msg.as_string())
-        except Exception as e :
-            text = "Error in function : \" %s \" ,\n \
-            Error name is : \" %s \" ,\n \
-            Error type is : \" %s \" ,\n \
-            Error Message is : \" %s \" ,\n \
-            Error doc is : \" %s \" \n" % \
-            (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
-            print text
-            #self.mailInit('Program exception',text,'exceptionInfo')
-        else:
-            smtp.quit()
+            if (messagetype == "securityinfo"):
+                smtp.sendmail(param['sender'],param['receiver'],msg.as_string())
+            else:
+                smtp.sendmail(param['sender'],param['receiver_admin'],msg.as_string())
 
-    def sendException(self,errorinfo,param):
-        print self.name,"is start sendException in",self.count
-
-        msg = MIMEText(errorinfo,'text')#中文参数‘utf-8’，单字节字符不需要
-        #msg = MIMEText('hello wold','text')
-        msg['Subject'] = Header(param['subject'])
-        try:
-            smtp = smtplib.SMTP()
-            smtp.connect(param['smtpserver'])
-            smtp.login(param['username'],param['password'])
-            smtp.sendmail(param['sender'],param['receiver_admin'],msg.as_string())
-        except Exception as e :
-            text = "Error in function : \" %s \" ,\n \
-            Error name is : \" %s \" ,\n \
-            Error type is : \" %s \" ,\n \
-            Error Message is : \" %s \" ,\n \
-            Error doc is : \" %s \" \n" % \
-            (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
-            print text
-            #self.mailInit('Program exception',text,'exceptionInfo')
-        else:
-            smtp.quit()
-
-    def sendConnectreport(self,message,param):
-        print self.name,"is start sendException in",self.count
-        #msg = MIMEText(url,'text')#中文参数‘utf-8’，单字节字符不需要
-        msg = MIMEText(message,'text','utf-8')
-        msg['Subject'] = Header('Program from WooYun is running......')
-
-        try:
-            smtp = smtplib.SMTP()
-            smtp.connect(param['smtpserver'])
-            smtp.login(param['username'],param['password'])
-            smtp.sendmail(param['sender'],param['receiver_admin'],msg.as_string())
         except Exception as e :
             text = "Error in function : \" %s \" ,\n \
             Error name is : \" %s \" ,\n \
@@ -226,8 +179,10 @@ class WooYun(object):
 if __name__ == '__main__':
     count = 0
     one = time.time() #开始时间
-    mailpassword = sys.argv[1]
-    #mailpassword = ""
+
+    #mailpassword = sys.argv[1]
+    mailpassword = "d6432408j6431646"
+
     Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
     Baojianhui = WooYun('WooYun保监会',mailpassword,'Baojianhui.txt', wooyun_url)
     jijin = WooYun('WooYun基金',mailpassword,'jijin.txt',wooyun_url)
@@ -238,7 +193,7 @@ if __name__ == '__main__':
     while True:
         print "system is running in [",count,"],now is",time.ctime()
         two = time.time() #当前时间
-        if ( two - one ) > 43200:
+        if ( two - one ) > 10:
             timereport.mailInit('running report from WooYun','program is running',"timereport")
             one = two
             print "Scheduled connections was sent"
@@ -248,4 +203,4 @@ if __name__ == '__main__':
         yinhang.dataRequest()
         print "This cycle [",count,"] was end in",time.ctime()
         count += 1
-        time.sleep(600)
+        time.sleep(5)
