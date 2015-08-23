@@ -63,7 +63,7 @@ class WooYun(object):
 
     def dataRequest(self):
         '''
-            Get data.
+            从乌云API获取json格式数据
         '''
         print self.name,"is start dataRequest in",self.count
         try:
