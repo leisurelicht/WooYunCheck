@@ -196,7 +196,7 @@ if __name__ == '__main__':
     one = time.time() #开始时间
 
     #mailpassword = sys.argv[1]
-    mailpassword = "d6432408j6431646"
+    #mailpassword = ""
 
     Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
     Baojianhui = WooYun('WooYun保监会',mailpassword,'Baojianhui.txt', wooyun_url)
