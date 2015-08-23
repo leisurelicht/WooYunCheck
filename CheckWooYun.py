@@ -8,6 +8,8 @@ from email.mime.text import MIMEText
 from email.header import Header
 import time
 import os
+from ConfigParser import ConfigParser
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -27,15 +29,28 @@ class WooYun(object):
         self.keyWordslist = []
         self.errorId = [0]
         self.keyWordsread(keyfile)
+        self.errorIdread('ErrorId.txt')
         self.mailpassword = mailpassword
         self.count = 0
         self.website = ' from WooYun'
-        for id in open('ErrorId.txt','r'):
-            self.errorId.append(id.strip())
-        #print self.errorId
+        try:
+            config = ConfigParser()
+            config.read("config.ini")
+        except Exception as e :
+            print e
+            exit(0)
 
     def __del__(self):
         print self.name,"is over"
+
+    def errorIdread(self,errorIdfile):
+        '''
+        从文件中读取已经发送过邮件的事件ID
+        '''
+        if os.path.exists(errorIdfile):
+            with open(errorIdfile) as errors:
+                for error in errors:
+                   self.errorId.append(error.strip())
 
     def keyWordsread(self,keyfile):
         '''
@@ -145,13 +160,13 @@ class WooYun(object):
         '''
         print self.name,"is start mailInit in",self.count
 
-        sender = '3118706739@qq.com'  #发件人
-        #receiver = ['leisurelylicht@126.com','zhao_haixu@venustech.com.cn','liuchang@venustech.com.cn','zhang_dejun@venustech.com.cn'] #收件人
-        receiver = ['leisurelylicht@126.com'] #测试
-        receiver_admin = 'leisurelylicht@126.com'
-        smtpserver = 'smtp.qq.com'  #邮件服务器
-        username = '3118706739@qq.com'  #邮箱登录名
-        password = self.mailpassword  #邮箱登陆密码
+        sender = config.get( 'mail' , 'sendermail' )  #发件人
+        receiver = config.get('mail','receivermail') #收件人
+        #receiver =  config.get('mail','receivermail_test') #测试
+        receiver_admin = config.get('mail','receivermail_admin')
+        smtpserver = config.get('mail','smtpserver')  #邮件服务器
+        username = config.get('mail','smtpserver')  #邮箱登录名
+        password = self.mailpassword   #邮箱登陆密码
 
         param = {'sender':sender,'receiver':receiver,\
         'subject':title,'smtpserver':smtpserver,\
@@ -195,7 +210,7 @@ if __name__ == '__main__':
     count = 0
     one = time.time() #开始时间
 
-    #mailpassword = sys.argv[1]
+    mailpassword = sys.argv[1]
     #mailpassword = ""
 
     Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
