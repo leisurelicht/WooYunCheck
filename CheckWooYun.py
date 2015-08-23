@@ -114,7 +114,7 @@ class WooYun(object):
             try:
                 #pass #test to use this
                 self.mailInit(title,url,'securityInfo')
-                #raise Exception("Mail send error")
+                #raise Exception("Mail send error") //test
             except Exception as e :
                 #print e
                 text = "Error in function : \" %s \" ,\n \
