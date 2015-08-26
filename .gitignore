@@ -1,10 +1,6 @@
 
-test.py
-
 nohup.out
 
 *.txt
 
-exception test.py
-
-
+*.ini
