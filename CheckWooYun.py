@@ -59,13 +59,14 @@ class WooYun(object):
         从文件中读取需要监看的关键字
         '''
         if os.path.exists(keyfile):
-            for key in open (keyfile,'r'):
-                newKey =  key.strip()
-                self.keyWordslist.append(newKey)
+            with open(keyfile) as keys:
+                for key in keys:
+                    self.keyWordslist.append(key.strip())
 
     def dataRequest(self):
         '''
             从乌云API获取json格式数据
+            返回json格式的数据
         '''
         print self.name,"is start dataRequest in",self.count
         try:
@@ -83,7 +84,8 @@ class WooYun(object):
                 self.mailInit('Program exception',text,'exceptionInfo')
         else:
             #data = json.loads(text)
-            self.keyWordscheck(text)
+            return text
+            #self.keyWordscheck(text)
 
     def keyWordscheck(self,text):
         '''
@@ -230,13 +232,12 @@ if __name__ == '__main__':
     count = 0
     one = time.time() #开始时间
 
-    #mailpassword = sys.argv[1]
-    mailpassword = "d6432408j6431646"
+    mailpassword = sys.argv[1]
+    #mailpassword = ""
+    #mailpassword = raw_input("Please input mail password:")
 
     Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
-    Baojianhui = WooYun('WooYun保监会',mailpassword,'Baojianhui.txt', wooyun_url)
-    jijin = WooYun('WooYun基金',mailpassword,'jijin.txt',wooyun_url)
-    yinhang = WooYun('WooYun银行',mailpassword,'yinhang.txt',wooyun_url)
+
 
     timereport = WooYun('WooYun运行报告',mailpassword)
     timereport.mailInit('Running report','Program start running',"timereport")
@@ -249,10 +250,9 @@ if __name__ == '__main__':
             one = two
             print "Scheduled connections was sent"
 
-        Guoziwei.dataRequest()
-        Baojianhui.dataRequest()
-        jijin.dataRequest()
-        yinhang.dataRequest()
+        data = Guoziwei.dataRequest()
+        Guoziwei.keyWordscheck(data)
+
         print "This cycle [",count,"] was end in",time.ctime()
         count += 1
         time.sleep(300)
