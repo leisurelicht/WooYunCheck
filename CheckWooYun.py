@@ -110,7 +110,7 @@ class WooYun(object):
                 temp_id = data[i].get('id')
                 for Key in self.keyWordslist:
                     if ( temp_name.find(Key) != -1 ):
-                        self.sendRecord(temp_name+self.website,temp_url,temp_id)
+                        self.sendRecord(temp_name,temp_url,temp_id)
                         break
         self.count += 1
 
