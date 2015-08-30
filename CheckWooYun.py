@@ -158,7 +158,7 @@ class WooYun(object):
                 temp.append(cmp(i, id))
 
         if 0 not in temp:
-            print "now is",time.ctime(),",",self.name,"to send email",title,"to everyone in",self.count
+            print "now is",time.ctime(),",",self.name,"to send email ",title," to everyone in",self.count
             try:
                 #pass #test to use this
                 self.mailInit(title,url,'securityInfo')
@@ -179,7 +179,7 @@ class WooYun(object):
                 tmp.close()
             time.sleep(1)
         else:
-            print title,"Same thing was sent,did not send same mail to everyone"
+            print title," Same thing was sent,did not send same mail to everyone"
 
     def mailInit(self,title,message,messagetype):
         '''
@@ -277,6 +277,6 @@ if __name__ == '__main__':
         data = robot.dataRequest()
         robot.keyWordscheck(data)
 
-        print "This cycle [",count,"] was end in",time.ctime()
+        print "WooYun robot : This cycle [",count,"] was end in",time.ctime()
         count += 1
         time.sleep(600)
