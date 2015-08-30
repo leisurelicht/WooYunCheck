@@ -5,13 +5,12 @@ import os
 import sys
 import time
 import json
+import hashlib
 import smtplib
-from email import encoders
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr , formataddr
 from ConfigParser import ConfigParser
-
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -26,15 +25,18 @@ class WooYun(object):
         '''
         super(WooYun, self).__init__()
         self.name = name
-        self.check_url = check_url
+        self.mailpassword = mailpassword
         self.keyfile = keyfile
+        self.check_url = check_url
         self.keyWordslist = []
         self.errorId = [0]
-        self.keyWordsread(keyfile)
-        self.errorIdread('ErrorId.txt')
-        self.mailpassword = mailpassword
         self.count = 0
+        self.fileCheck = 0
         self.website = ' from WooYun'
+
+        self.keyWordsread(self.keyfile)
+        self.errorIdread('ErrorId.txt')
+        self.fileMd5check(self.keyfile)
         try:
             self.config = ConfigParser()
             self.config.read("config.ini")
@@ -54,14 +56,37 @@ class WooYun(object):
                 for error in errors:
                    self.errorId.append(error.strip())
 
+    def fileMd5check(self,keyfile):
+        '''
+        检查文件的MD5值,确定文件是否发生改变
+        没有发生改变返回 'not'
+        发生改变返回 'change'
+        '''
+        filemd5 = hashlib.md5()
+        if ( self.fileCheck == 0 ):
+            with open(keyfile) as filetemp:
+                filemd5.update(filetemp.read())
+                self.fileCheck = filemd5.hexdigest()
+                return 'not'
+        else:
+            with open(keyfile) as filetemp:
+                filemd5.update(filetemp.read())
+                md5temp = filemd5.hexdigest()
+                if ( self.fileCheck != md5temp ):
+                    self.fileCheck = md5temp
+                    return 'change'
+
     def keyWordsread(self,keyfile):
         '''
         从文件中读取需要监看的关键字
+        没有返回值
         '''
+        self.keyWordslist = []
         if os.path.exists(keyfile):
             with open(keyfile) as keys:
                 for key in keys:
-                    self.keyWordslist.append(key.strip())
+                        self.keyWordslist.append(key.strip())
+
 
     def dataRequest(self):
         '''
@@ -73,7 +98,7 @@ class WooYun(object):
             text = requests.get(self.check_url).content
             #raise Exception("connect error")
         except (requests.exceptions.ConnectionError,Exception) as e :
-                #print e
+
                 text = "Error in function : \" %s \" ,\n \
                 Error name is : \" %s \" ,\n \
                 Error type is : \" %s \" ,\n \
@@ -83,9 +108,7 @@ class WooYun(object):
                 print text
                 self.mailInit('Program exception',text,'exceptionInfo')
         else:
-            #data = json.loads(text)
             return text
-            #self.keyWordscheck(text)
 
     def keyWordscheck(self,text):
         '''
@@ -106,6 +129,10 @@ class WooYun(object):
             print text
             self.mailInit('Program exception',text,'exceptionInfo')
         else :
+            flag = self.fileMd5check(self.keyfile)
+            if ( flag == 'change'):
+                self.keyWordsread(self.keyfile)
+            print self.keyWordslist
             for i in range(0,10):
                 temp_name = data[i].get('title')
                 temp_url = data[i].get('link')
@@ -131,7 +158,7 @@ class WooYun(object):
                 temp.append(cmp(i, id))
 
         if 0 not in temp:
-            print "now is",time.ctime(),",",self.name,"to send email to everyone in",self.count
+            print "now is",time.ctime(),",",self.name,"to send email",title,"to everyone in",self.count
             try:
                 #pass #test to use this
                 self.mailInit(title,url,'securityInfo')
@@ -152,7 +179,7 @@ class WooYun(object):
                 tmp.close()
             time.sleep(1)
         else:
-            print "Same thing was sent,did not send same mail to everyone"
+            print title,"Same thing was sent,did not send same mail to everyone"
 
     def mailInit(self,title,message,messagetype):
         '''
@@ -170,7 +197,6 @@ class WooYun(object):
 
         sender = self.config.get( 'mail' , 'sendermail' )  #发件人
         receiver = self.config.get('mail','receivermail') #收件人
-        #receiver =  config.get('mail','receivermail_test') #测试
         receiver_admin = self.config.get('mail','receivermail_admin')
         smtpserver = self.config.get('mail','smtpserver')  #邮件服务器
         username = self.config.get('mail','mailname')  #邮箱登录名
@@ -191,7 +217,6 @@ class WooYun(object):
         print self.name,"is start sendEmail in",self.count
 
         msg = MIMEText(message,'plain','utf-8')#中文参数‘utf-8’，单字节字符不需要
-        #msg = MIMEText('hello wold','text')
         msg[ 'From' ] = self._format_addr( u'WooYun监看机器人<%s>' % param['sender'] )
         msg[ 'Subject' ] = Header( param['subject'] )
 
@@ -215,7 +240,6 @@ class WooYun(object):
             Error doc is : \" %s \" \n" % \
             (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
             print text
-            #self.mailInit('Program exception',text,'exceptionInfo')
         else:
             smtp.quit()
 
@@ -236,23 +260,23 @@ if __name__ == '__main__':
     #mailpassword = ""
     #mailpassword = raw_input("Please input mail password:")
 
-    Guoziwei = WooYun('WooYun国资委',mailpassword,'Guoziwei.txt',wooyun_url)
+    robot = WooYun('WooYun机器人',mailpassword,'KeyWords.txt',wooyun_url)
 
 
-    timereport = WooYun('WooYun运行报告',mailpassword)
+    timereport = WooYun('WooYun运行报告',mailpassword,'KeyWords.txt')
     timereport.mailInit('Running report','Program start running',"timereport")
 
     while True:
-        print "system is running in [",count,"],now is",time.ctime()
+        print "WooYun robot system is running in [",count,"],now is",time.ctime()
         two = time.time() #当前时间
-        if ( two - one ) > 1800:
+        if ( two - one ) > 43200:
             timereport.mailInit('Running report','Program is running',"timereport")
             one = two
             print "Scheduled connections was sent"
 
-        data = Guoziwei.dataRequest()
-        Guoziwei.keyWordscheck(data)
+        data = robot.dataRequest()
+        robot.keyWordscheck(data)
 
         print "This cycle [",count,"] was end in",time.ctime()
         count += 1
-        time.sleep(300)
+        time.sleep(600)
