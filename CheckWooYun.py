@@ -132,7 +132,7 @@ class WooYun(object):
             flag = self.fileMd5check(self.keyfile)
             if ( flag == 'change'):
                 self.keyWordsread(self.keyfile)
-            print self.keyWordslist
+            #print self.keyWordslist
             for i in range(0,10):
                 temp_name = data[i].get('title')
                 temp_url = data[i].get('link')
@@ -161,7 +161,7 @@ class WooYun(object):
             print "now is",time.ctime(),",",self.name,"to send email ",title," to everyone in",self.count
             try:
                 #pass #test to use this
-                self.mailInit(title,url,'securityInfo')
+                self.mailInit(title+self.website,url,'securityInfo')
                 #raise Exception("Mail send error") //test
             except Exception as e :
                 #print e
@@ -196,13 +196,13 @@ class WooYun(object):
         print self.name,"is start mailInit in",self.count
 
         sender = self.config.get( 'mail' , 'sendermail' )  #发件人
-        receiver = self.config.get('mail','receivermail') #收件人
-        receiver_admin = self.config.get('mail','receivermail_admin')
+        receiver = self.config.get('mail','receivermail').split(',') #收件人
+        receiver_admin = self.config.get('mail','receivermail_admin').split(',')
         smtpserver = self.config.get('mail','smtpserver')  #邮件服务器
         username = self.config.get('mail','mailname')  #邮箱登录名
         password = self.mailpassword   #邮箱登陆密码
         param = {'sender':sender,'receiver':receiver,\
-        'subject':title+self.website,'smtpserver':smtpserver,\
+        'subject':title,'smtpserver':smtpserver,\
         'username':username,'password':password,\
         'receiver_admin':receiver_admin}
 
@@ -222,10 +222,11 @@ class WooYun(object):
 
         try:
             smtp = smtplib.SMTP( param['smtpserver'] , 25 )
+            #smtp = smtplib.SMTP()
             #smtp.connect(param['smtpserver'])
             #smtp.set_debuglevel(1)
             smtp.login(param['username'],param['password'])
-            if (messagetype == "securityinfo"):
+            if (messagetype == "securityInfo"):
                 msg[ 'To' ] = self._format_addr(u'Dollars<%s>' % param['receiver'] )
                 smtp.sendmail(param['sender'],param['receiver'],msg.as_string())
             else:
