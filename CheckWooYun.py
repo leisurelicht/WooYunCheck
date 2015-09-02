@@ -20,12 +20,11 @@ wooyun_url = 'http://api.wooyun.org/bugs/submit'
 class WooYun(object):
     """docstring for WooYun"""
 
-    def __init__(self,name,mailpassword,keyfile='',check_url=''):
+    def __init__(self,name,keyfile='',check_url=''):
         '''
         '''
         super(WooYun, self).__init__()
         self.name = name
-        self.mailpassword = mailpassword
         self.keyfile = keyfile
         self.check_url = check_url
         self.keyWordslist = []
@@ -51,6 +50,7 @@ class WooYun(object):
         '''
         从文件中读取已经发送过邮件的事件ID
         '''
+        print self.name,"is start errorIdRead in",self.count
         if os.path.exists(errorIdfile):
             with open(errorIdfile) as errors:
                 for error in errors:
@@ -62,25 +62,42 @@ class WooYun(object):
         没有发生改变返回 'not'
         发生改变返回 'change'
         '''
-        filemd5 = hashlib.md5()
-        if ( self.fileCheck == 0 ):
-            with open(keyfile) as filetemp:
-                filemd5.update(filetemp.read())
-                self.fileCheck = filemd5.hexdigest()
-                return 'not'
-        else:
-            with open(keyfile) as filetemp:
-                filemd5.update(filetemp.read())
-                md5temp = filemd5.hexdigest()
-                if ( self.fileCheck != md5temp ):
-                    self.fileCheck = md5temp
-                    return 'change'
+        print self.name,"is start fileMd5check in",self.count
+
+        try:
+            filemd5 = hashlib.md5()
+            if ( self.fileCheck == 0 ):
+                with open(keyfile) as filetemp:
+                    filemd5.update(filetemp.read())
+                    self.fileCheck = filemd5.hexdigest()
+                    return 'not'
+            else:
+                with open(keyfile) as filetemp:
+                    filemd5.update(filetemp.read())
+                    md5temp = filemd5.hexdigest()
+                    if ( self.fileCheck != md5temp ):
+                        self.fileCheck = md5temp
+                        return 'change'
+        except (requests.exceptions.ConnectionError,Exception) as e:
+                errortext = "Error in functon : \" %s \" ,\n \
+                Error name is : \" %s \" ,\n \
+                Error type is : \" %s \" ,\n \
+                Error Message is : \" %s \" ,\n \
+                Error doc is : \" %s \" , \n " % \
+                (sys._getframe().f_code.co_name,\
+                 e.__class__.__name__,\
+                 e.__class__,\
+                 e,\
+                 e.__class__.__doc__)
+                #print errortext
+                self.mailInit('Program exception',errortext,'exceptionInfo')
 
     def keyWordsread(self,keyfile):
         '''
         从文件中读取需要监看的关键字
         没有返回值
         '''
+        print self.name,"is start keyWordsread in",self.count
         self.keyWordslist = []
         if os.path.exists(keyfile):
             with open(keyfile) as keys:
@@ -200,7 +217,7 @@ class WooYun(object):
         receiver_admin = self.config.get('mail','receivermail_admin').split(',')
         smtpserver = self.config.get('mail','smtpserver')  #邮件服务器
         username = self.config.get('mail','mailname')  #邮箱登录名
-        password = self.mailpassword   #邮箱登陆密码
+        password = self.config.get('mail','mailpasswd')   #邮箱登陆密码
         param = {'sender':sender,'receiver':receiver,\
         'subject':title,'smtpserver':smtpserver,\
         'username':username,'password':password,\
@@ -220,29 +237,34 @@ class WooYun(object):
         msg[ 'From' ] = self._format_addr( u'WooYun监看机器人<%s>' % param['sender'] )
         msg[ 'Subject' ] = Header( param['subject'] )
 
-        try:
-            smtp = smtplib.SMTP( param['smtpserver'] , 25 )
-            #smtp = smtplib.SMTP()
-            #smtp.connect(param['smtpserver'])
-            #smtp.set_debuglevel(1)
-            smtp.login(param['username'],param['password'])
-            if (messagetype == "securityInfo"):
-                msg[ 'To' ] = self._format_addr(u'Dollars<%s>' % param['receiver'] )
-                smtp.sendmail(param['sender'],param['receiver'],msg.as_string())
-            else:
-                msg[ 'To' ] = self._format_addr(u'Admin<%s>' % param['receiver_admin'] )
-                smtp.sendmail(param['sender'],param['receiver_admin'],msg.as_string())
+        while True:
+            try:
+                smtp = smtplib.SMTP( param['smtpserver'] , 25 )
+                #smtp = smtplib.SMTP()
+                #smtp.connect(param['smtpserver'])
+                #smtp.set_debuglevel(1)
+                smtp.login(param['username'],param['password'])
+                if (messagetype == "securityInfo"):
+                    msg[ 'To' ] = self._format_addr(u'Dollars<%s>' % param['receiver'] )
+                    smtp.sendmail(param['sender'],param['receiver'],msg.as_string())
+                else:
+                    msg[ 'To' ] = self._format_addr(u'Admin<%s>' % param['receiver_admin'] )
+                    smtp.sendmail(param['sender'],param['receiver_admin'],msg.as_string())
 
-        except Exception as e :
-            text = "Error in function : \" %s \" ,\n \
-            Error name is : \" %s \" ,\n \
-            Error type is : \" %s \" ,\n \
-            Error Message is : \" %s \" ,\n \
-            Error doc is : \" %s \" \n" % \
-            (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
-            print text
-        else:
-            smtp.quit()
+            except Exception as e :
+                text = "Error in function : \" %s \" ,\n \
+                Error name is : \" %s \" ,\n \
+                Error type is : \" %s \" ,\n \
+                Error Message is : \" %s \" ,\n \
+                Error doc is : \" %s \" \n" % \
+                (sys._getframe().f_code.co_name,e.__class__.__name__,e.__class__,e,e.__class__.__doc__)
+                print text
+
+                time.sleep(5)
+                continue
+            else:
+                smtp.quit()
+                break
 
     def _format_addr(self,s):
         '''
@@ -257,14 +279,11 @@ if __name__ == '__main__':
     count = 0
     one = time.time() #开始时间
 
-    mailpassword = sys.argv[1]
-    #mailpassword = ""
-    #mailpassword = raw_input("Please input mail password:")
 
-    robot = WooYun('WooYun机器人',mailpassword,'KeyWords.txt',wooyun_url)
+    robot = WooYun('WooYun机器人','KeyWords.txt',wooyun_url)
 
 
-    timereport = WooYun('WooYun运行报告',mailpassword,'KeyWords.txt')
+    timereport = WooYun('WooYun运行报告','KeyWords.txt')
     timereport.mailInit('Running report','Program start running',"timereport")
 
     while True:
